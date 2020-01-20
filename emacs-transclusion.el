@@ -5,6 +5,8 @@
 
 (setq emacs-transclusion/refernece-display-state nil)
 
+(setq emacs-transclusion/embed-syntax-regex "\\[EMBED: \\([^\\]*?\\)\\(]\\)")
+
 (defun emacs-transclusion/toggle-display-embed-syntax ()
   (interactive)
 
@@ -16,33 +18,46 @@
     (overlay-put cur-overlay 'invisible emacs-transclusion/refernece-display-state)))
 
 (defun emacs-transclusion/find-embed-syntax-in-current-buffer ()
-  (let ((buffer-point (re-search-forward "\\[EMBED: \\([^\\]*\\)\\(]\\)"))
+
+  (let ((buffer-point (re-search-forward emacs-transclusion/embed-syntax-regex))
 	(overlay-ref nil))
       (when (match-string 0)
-
-
 	(setq overlay-ref (make-overlay (match-beginning 0) (match-end 0)))
 	(push overlay-ref emacs-transclusion/overlays)
 
 	;re-search-forward moves point to end of match.
 	;save position
 	(setq first-marker (point-marker))
-
-        (forward-char)
+        (insert " ")
 	(setq second-marker (point-marker))
         (backward-char)
-        (insert-file-contents (match-string 1))))
-)
+        (insert-file-contents (match-string 1))
+        (goto-char second-marker)
+        (backward-char)
+        (delete-char 1)
+        )))
 
 
-(with-current-buffer "testbuffer"
-    ;(delete-region first-marker second-marker)
-    (goto-char 1)
-    (emacs-transclusion/find-embed-syntax-in-current-buffer)
-    ;(delete-region first-marker second-marker)
-)
 
-;(add-hook 'before-save-hook 'emacs-transclusion/before-save-hook)
+(ert-deftest emacs-transclusion-test/mark-code-insertion ()
+  "Text markers should surround transcluded text"
 
-;(defun emacs-transclusion/before-save-hook ()
-;  (insert "hello world!"))
+  (let* ((temporary-file-path (make-temp-file "emacs-transclusion-test"))
+        (embed-string (concat "[EMBED: " temporary-file-path "]")))
+        
+
+    ;Create file with contents to transclude
+    (with-temp-buffer
+      (insert "A")
+      (write-file temporary-file-path))
+    
+
+    ;Create buffer to test file inclusion 
+    (with-temp-buffer
+      (insert embed-string)
+      (beginning-of-buffer)
+      (emacs-transclusion/find-embed-syntax-in-current-buffer)
+      (should (string= (buffer-string) (concat "[EMBED: " temporary-file-path "]A")))
+      (should (= (+ 1 (length embed-string)) (marker-position first-marker) ))
+      (should (= (+ 2 (length embed-string)) (marker-position second-marker))))))
+
