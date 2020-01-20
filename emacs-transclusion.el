@@ -6,6 +6,7 @@
 (setq emacs-transclusion/refernece-display-state nil)
 
 (defun emacs-transclusion/toggle-display-embed-syntax ()
+  (interactive)
 
   "Toggles displaying of embed syntax in documents."
 
