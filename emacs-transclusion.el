@@ -17,7 +17,8 @@
   (dolist (cur-overlay emacs-transclusion/overlays)
     (overlay-put cur-overlay 'invisible emacs-transclusion/refernece-display-state)))
 
-(defun emacs-transclusion/find-embed-syntax-in-current-buffer ()
+(defun emacs-transclusion/transclude-data-for-current-buffer ()
+  "Finds embed references in buffer, and transcludes data into buffer."
 
   (let ((buffer-point (re-search-forward emacs-transclusion/embed-syntax-regex))
 	(overlay-ref nil))
@@ -56,7 +57,7 @@
     (with-temp-buffer
       (insert embed-string)
       (beginning-of-buffer)
-      (emacs-transclusion/find-embed-syntax-in-current-buffer)
+      (emacs-transclusion/transclude-data-for-current-buffer)
       (should (string= (buffer-string) (concat "[EMBED: " temporary-file-path "]A")))
       (should (= (+ 1 (length embed-string)) (marker-position first-marker) ))
       (should (= (+ 2 (length embed-string)) (marker-position second-marker))))))
