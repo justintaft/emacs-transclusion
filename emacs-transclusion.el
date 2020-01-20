@@ -15,13 +15,6 @@
   (dolist (cur-overlay emacs-transclusion/overlays)
     (overlay-put cur-overlay 'invisible emacs-transclusion/refernece-display-state)))
 
-
-(defun emacs-transclusion/get-file-contents (path)
-  "Returns content of file as string"
-  (with-temp-buffer
-    (insert-file-contents path)
-    (buffer-string)))
-
 (defun emacs-transclusion/find-embed-syntax-in-current-buffer ()
   (let ((buffer-point (re-search-forward "\\[EMBED: \\([^\\]*\\)\\(]\\)"))
 	(overlay-ref nil))
@@ -33,17 +26,12 @@
 
 	;re-search-forward moves point to end of match.
 	;save position
-	(setq first-marker (point))
+	(setq first-marker (point-marker))
 
-	(insert (emacs-transclusion/get-file-contents (match-string 1)))
-	(setq second-marker (point))
-
-	;EMACS BUG! Can't use insert file, file marker are not moved when text is inserted
-
-        ;(insert-file-contents-literally (match-string  1))
-
-      )
-    )
+        (forward-char)
+	(setq second-marker (point-marker))
+        (backward-char)
+        (insert-file-contents (match-string 1))))
 )
 
 
@@ -51,6 +39,10 @@
     ;(delete-region first-marker second-marker)
     (goto-char 1)
     (emacs-transclusion/find-embed-syntax-in-current-buffer)
-    (delete-region first-marker second-marker)
+    ;(delete-region first-marker second-marker)
 )
 
+;(add-hook 'before-save-hook 'emacs-transclusion/before-save-hook)
+
+;(defun emacs-transclusion/before-save-hook ()
+;  (insert "hello world!"))
