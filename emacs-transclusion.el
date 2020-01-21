@@ -36,6 +36,8 @@
         (goto-char second-marker)
         (backward-char)
         (delete-char 1)
+        (put-text-property first-marker second-marker 'font-lock-face '(:foreground "red"))
+        (put-text-property first-marker second-marker 'read-only t)
         )))
 
 
@@ -62,3 +64,25 @@
       (should (= (+ 1 (length embed-string)) (marker-position first-marker) ))
       (should (= (+ 2 (length embed-string)) (marker-position second-marker))))))
 
+
+(ert-deftest emacs-transclusion-test/applies-text-face-on-transclusion-data ()
+  (let* ((temporary-file-path (make-temp-file "emacs-transclusion-test"))
+        (embed-string (concat "[EMBED: " temporary-file-path "]")))
+        
+
+    ;Create file with contents to transclude
+    (with-temp-buffer
+      (insert "A")
+      (write-file temporary-file-path))
+    
+
+    ;Create buffer to test file inclusion 
+    (with-temp-buffer
+      (insert embed-string)
+      (beginning-of-buffer)
+      (emacs-transclusion/transclude-data-for-current-buffer)
+      (should (equal '(:foreground "red") (get-text-property (- (point-max) 1) 'font-lock-face)))
+      (should (equal t (get-text-property (- (point-max) 1) 'read-only)))
+
+      )))
+    
