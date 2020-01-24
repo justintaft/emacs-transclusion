@@ -113,7 +113,7 @@ If PROPERTIES, add them as properties to the overlay."
 (ert-deftest emacs-transclusion-test/remove-transcluded-text-on-save ()
   (let* ((filepath-to-transclude (make-temp-file "emacs-transclusion-test"))
          (filepath-to-write-buffer-to (make-temp-file "emacs-transclusion-test-save-buffer"))
-        (embed-string (concat "[EMBED: " filepath-to-transclude "]")))
+        (embed-string (concat "HELLO [EMBED: " filepath-to-transclude "]WORLD")))
         
 
     ;Create file with contents to transclude
