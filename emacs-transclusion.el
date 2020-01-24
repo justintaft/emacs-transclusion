@@ -45,14 +45,14 @@
 (ert-deftest emacs-transclusion-test/mark-code-insertion ()
   "Text markers should surround transcluded text"
 
-  (let* ((temporary-file-path (make-temp-file "emacs-transclusion-test"))
-        (embed-string (concat "[EMBED: " temporary-file-path "]")))
+  (let* ((filepath-to-transclude (make-temp-file "emacs-transclusion-test"))
+        (embed-string (concat "[EMBED: " filepath-to-transclude "]")))
         
 
     ;Create file with contents to transclude
     (with-temp-buffer
       (insert "A")
-      (write-file temporary-file-path))
+      (write-file filepath-to-transclude))
     
 
     ;Create buffer to test file inclusion 
@@ -60,20 +60,20 @@
       (insert embed-string)
       (beginning-of-buffer)
       (emacs-transclusion/transclude-data-for-current-buffer)
-      (should (string= (buffer-string) (concat "[EMBED: " temporary-file-path "]A")))
+      (should (string= (buffer-string) (concat "[EMBED: " filepath-to-transclude "]A")))
       (should (= (+ 1 (length embed-string)) (marker-position first-marker) ))
       (should (= (+ 2 (length embed-string)) (marker-position second-marker))))))
 
 
 (ert-deftest emacs-transclusion-test/applies-text-face-on-transclusion-data ()
-  (let* ((temporary-file-path (make-temp-file "emacs-transclusion-test"))
-        (embed-string (concat "[EMBED: " temporary-file-path "]")))
+  (let* ((filepath-to-transclude (make-temp-file "emacs-transclusion-test"))
+        (embed-string (concat "[EMBED: " filepath-to-transclude "]")))
         
 
     ;Create file with contents to transclude
     (with-temp-buffer
       (insert "A")
-      (write-file temporary-file-path))
+      (write-file filepath-to-transclude))
     
 
     ;Create buffer to test file inclusion 
@@ -86,3 +86,5 @@
 
       )))
     
+;(add-hook 'before-save-hook 'emacs-transclusion/before-save-hook)
+(ert-run-tests-interactively t)
