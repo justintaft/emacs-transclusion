@@ -30,8 +30,12 @@ If PROPERTIES, add them as properties to the overlay."
 
   (interactive)
 
-  (while (re-search-forward emacs-transclusion/embed-syntax-regex nil t)
-        
+  (save-excursion
+
+    ;;Goto to beginninf of the buffer and search for embedded syntax references
+    (goto-char (point-min))
+    (while (re-search-forward emacs-transclusion/embed-syntax-regex nil t)
+      
       (when (match-string 0)
 
         ;;Insert text with identifiable overlay
@@ -40,7 +44,7 @@ If PROPERTIES, add them as properties to the overlay."
          (emacs-transclusion/get-file-contents (match-string 1))
          :transcluded-content t
          'face '(:foreground "red"))
-        )))
+        ))))
 
 
 
@@ -68,8 +72,8 @@ If PROPERTIES, add them as properties to the overlay."
 
 
 
-(ert-deftest emacs-transclusion-test/verify-single-etransclusion-text  ()
-  "Text markers should surround transcluded text"
+(ert-deftest emacs-transclusion-test/verify-single-transclusion-text  ()
+  "Verifies text is transcluded when referenced. Implicitly tests cursor position does not have to be at the beginning of the buffer."
 
   (let* ((filepath-to-transclude (make-temp-file "emacs-transclusion-test"))
         (embed-string (concat "[EMBED: " filepath-to-transclude "]")))
@@ -83,7 +87,6 @@ If PROPERTIES, add them as properties to the overlay."
     ;Create buffer to test file inclusion 
     (with-temp-buffer
       (insert embed-string)
-      (beginning-of-buffer)
       (emacs-transclusion/transclude-data-for-current-buffer)
       (let ((found-overlay (first (overlays-in (point-min) (point-max)))))
         (should (string= (buffer-string) (concat "[EMBED: " filepath-to-transclude "]A")))))))
@@ -105,7 +108,6 @@ If PROPERTIES, add them as properties to the overlay."
     ;Create buffer to test file inclusion 
     (with-temp-buffer
       (insert embed-string)
-      (beginning-of-buffer)
       (emacs-transclusion/transclude-data-for-current-buffer)
       (let ((found-overlay (first (overlays-in (point-min) (point-max)))))
         (should (string= (buffer-string) (concat "[EMBED: " filepath-to-transclude "]A"
@@ -128,7 +130,6 @@ If PROPERTIES, add them as properties to the overlay."
     ;Create buffer to test file inclusion 
     (with-temp-buffer
       (insert embed-string)
-      (beginning-of-buffer)
       (emacs-transclusion/transclude-data-for-current-buffer)
       (should (equal '(:foreground "red") (overlay-get
                                            (first (overlays-in (point-min) (point-max)))
@@ -152,7 +153,6 @@ If PROPERTIES, add them as properties to the overlay."
     (with-temp-buffer
       (emacs-transclusion-mode t)
       (insert embed-string)
-      (beginning-of-buffer)
       (emacs-transclusion/transclude-data-for-current-buffer)
       (write-file filepath-to-write-buffer-to))
 
@@ -161,6 +161,7 @@ If PROPERTIES, add them as properties to the overlay."
     (with-temp-buffer
       (insert-file-contents filepath-to-write-buffer-to)
       (should (equal embed-string (buffer-string))))))
+
     
 (defun emacs-transclusion/delete-transcluded-overlays-and-text ()
   (dolist (cur-overlay (overlays-in (point-min) (point-max)))
@@ -183,6 +184,7 @@ If PROPERTIES, add them as properties to the overlay."
    (t
     ;; Remove your hooks
     (remove-hook 'before-save-hook 'emacs-transclusion/delete-transcluded-overlays-and-text))))
+
 
 ;(add-hook 'before-save-hook 'emacs-transclusion/before-save-hook )
 (ert-run-tests-interactively t)
