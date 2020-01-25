@@ -12,17 +12,6 @@
     (insert-file-contents path)
     (buffer-string)))
 
-  
-;(defun emacs-transclusion/toggle-display-embed-syntax ()
-;  (interactive)
-;
-;  "Toggles displaying of embed syntax in documents."
-;
-;  ;;Inverse turthyness of reference display state
-;  (setq emacs-transclusion/refernece-display-state (not emacs-transclusion/refernece-display-state))
-;  (dolist (cur-overlay emacs-transclusion/overlays)
-;    (overlay-put cur-overlay 'invisible emacs-transclusion/refernece-display-state)))
-
 (defun emacs-transclusion/insert-overlaid (string &rest properties)
   "Insert STRING and overlay it, then return the overlay.
 If PROPERTIES, add them as properties to the overlay."
