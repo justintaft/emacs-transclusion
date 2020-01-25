@@ -46,9 +46,6 @@ If PROPERTIES, add them as properties to the overlay."
   (let ((buffer-point (re-search-forward emacs-transclusion/embed-syntax-regex)))
         
       (when (match-string 0)
-	(setq overlay-ref (make-overlay (match-beginning 0) (match-end 0)))
-	(push overlay-ref emacs-transclusion/overlays)
-
 
         ;;Insert text with identifiable overlay
         ;;TODO Modify text as readonly
@@ -56,10 +53,6 @@ If PROPERTIES, add them as properties to the overlay."
          (emacs-transclusion/get-file-contents (match-string 1))
          :transcluded-content t
          'face '(:foreground "red"))
-
-        ;(put-text-property first-marker second-marker 'font-lock-face '(:foreground "red"))
-        ;(put-text-property first-marker second-marker 'read-only t)
-
         )))
 
 
