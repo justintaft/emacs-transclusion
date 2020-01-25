@@ -83,9 +83,31 @@ If PROPERTIES, add them as properties to the overlay."
       (beginning-of-buffer)
       (emacs-transclusion/transclude-data-for-current-buffer)
       (let ((found-overlay (first (overlays-in (point-min) (point-max)))))
-        (should (string= (buffer-string) (concat "[EMBED: " filepath-to-transclude "]A")))
         (should (= (+ 1 (length embed-string)) (overlay-start found-overlay) ))
         (should (= (+ 2 (length embed-string)) (overlay-end found-overlay)))))))
+
+
+
+(ert-deftest emacs-transclusion-test/verify-single-etransclusion-text  ()
+  "Text markers should surround transcluded text"
+
+  (let* ((filepath-to-transclude (make-temp-file "emacs-transclusion-test"))
+        (embed-string (concat "[EMBED: " filepath-to-transclude "]")))
+
+    ;Create file with contents to transclude
+    (with-temp-buffer
+      (insert "A")
+      (write-file filepath-to-transclude))
+    
+
+    ;Create buffer to test file inclusion 
+    (with-temp-buffer
+      (insert embed-string)
+      (beginning-of-buffer)
+      (emacs-transclusion/transclude-data-for-current-buffer)
+      (let ((found-overlay (first (overlays-in (point-min) (point-max)))))
+        (should (string= (buffer-string) (concat "[EMBED: " filepath-to-transclude "]A")))))))
+
 
 
 (ert-deftest emacs-transclusion-test/applies-text-face-on-transclusion-data ()
