@@ -31,20 +31,21 @@ If PROPERTIES, add them as properties to the overlay."
   (interactive)
 
   (save-excursion
+    (save-match-data
 
-    ;;Goto to beginninf of the buffer and search for embedded syntax references
-    (goto-char (point-min))
-    (while (re-search-forward emacs-transclusion/embed-syntax-regex nil t)
-      
-      (when (match-string 0)
+      ;;Goto to beginninf of the buffer and search for embedded syntax references
+      (goto-char (point-min))
+      (while (re-search-forward emacs-transclusion/embed-syntax-regex nil t)
+        
+        (when (match-string 0)
 
-        ;;Insert text with identifiable overlay
-        ;;TODO Modify text as readonly
-        (emacs-transclusion/insert-overlaid
-         (emacs-transclusion/get-file-contents (match-string 1))
-         :transcluded-content t
-         'face '(:foreground "red"))
-        ))))
+          ;;Insert text with identifiable overlay
+          ;;TODO Modify text as readonly
+          (emacs-transclusion/insert-overlaid
+           (emacs-transclusion/get-file-contents (match-string 1))
+           :transcluded-content t
+           'face '(:foreground "red"))
+          )))))
 
 
 
