@@ -1,4 +1,5 @@
-;; Contributor: Alpha Papa https://gist.github.com/alphapapa
+;; Contributors: Alpha Papa https://gist.github.com/alphapapa
+;;               Benson Chu github.com/pestctrl
 
 (setq emacs-transclusion/overlays '())
 
@@ -11,10 +12,6 @@
     (insert-file-contents path)
     (buffer-string)))
 
-(define-minor-mode emacs-transclusion-mode
-  "Toggle Emacs Transclusion Mode"
-  :init-value nil
-  :ligher "Emacs-Transclusion")
   
 ;(defun emacs-transclusion/toggle-display-embed-syntax ()
 ;  (interactive)
@@ -159,10 +156,12 @@ If PROPERTIES, add them as properties to the overlay."
 
     ;Create file with contents to transclude
     (with-temp-buffer
+      (insert "I_SHOULD_BE_REMOVED_ON_SAVE")
       (write-file filepath-to-transclude))
 
     ;Create buffer, transclude text, save buffer
     (with-temp-buffer
+      (emacs-transclusion-mode t)
       (insert embed-string)
       (beginning-of-buffer)
       (emacs-transclusion/transclude-data-for-current-buffer)
@@ -174,5 +173,27 @@ If PROPERTIES, add them as properties to the overlay."
       (insert-file-contents filepath-to-write-buffer-to)
       (should (equal embed-string (buffer-string))))))
     
-;(add-hook 'before-save-hook 'emacs-transclusion/before-save-hook)
+(defun emacs-transclusion/delete-transcluded-overlays-and-text ()
+  (dolist (cur-overlay (overlays-in (point-min) (point-max)))
+    (when (overlay-get cur-overlay :transcluded-content)
+      (delete-region (overlay-start cur-overlay)  (overlay-end cur-overlay))
+      (delete-overlay cur-overlay))))
+
+
+
+(define-minor-mode emacs-transclusion-mode
+  "Toggle Emacs Transclusion Mode"
+  :init-value nil
+  :lighter "Emacs-Transclusion"
+  (cond
+   ;; When minor-mode is activated
+   (emacs-transclusion-mode
+    ;; Add whatever hook you want to add
+    (add-hook 'before-save-hook 'emacs-transclusion/delete-transcluded-overlays-and-text ))
+   ;; When minor-mode is deactivate
+   (t
+    ;; Remove your hooks
+    (remove-hook 'before-save-hook 'emacs-transclusion/delete-transcluded-overlays-and-text))))
+
+;(add-hook 'before-save-hook 'emacs-transclusion/before-save-hook )
 (ert-run-tests-interactively t)
