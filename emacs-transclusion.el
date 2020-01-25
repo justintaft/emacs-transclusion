@@ -43,7 +43,8 @@ If PROPERTIES, add them as properties to the overlay."
   "Finds embed references in buffer, and transcludes data into buffer."
 
   (interactive)
-  (let ((buffer-point (re-search-forward emacs-transclusion/embed-syntax-regex)))
+
+  (while (re-search-forward emacs-transclusion/embed-syntax-regex nil t)
         
       (when (match-string 0)
 
@@ -100,6 +101,30 @@ If PROPERTIES, add them as properties to the overlay."
       (emacs-transclusion/transclude-data-for-current-buffer)
       (let ((found-overlay (first (overlays-in (point-min) (point-max)))))
         (should (string= (buffer-string) (concat "[EMBED: " filepath-to-transclude "]A")))))))
+
+
+(ert-deftest emacs-transclusion-test/verify-multiple-transclusion-text  ()
+  "Multiple references should be transcluded"
+
+  (let* ((filepath-to-transclude (make-temp-file "emacs-transclusion-test"))
+         (embed-string (concat "[EMBED: " filepath-to-transclude "]"
+                               "[EMBED: " filepath-to-transclude "]")))
+
+    ;Create file with contents to transclude
+    (with-temp-buffer
+      (insert "A")
+      (write-file filepath-to-transclude))
+    
+
+    ;Create buffer to test file inclusion 
+    (with-temp-buffer
+      (insert embed-string)
+      (beginning-of-buffer)
+      (emacs-transclusion/transclude-data-for-current-buffer)
+      (let ((found-overlay (first (overlays-in (point-min) (point-max)))))
+        (should (string= (buffer-string) (concat "[EMBED: " filepath-to-transclude "]A"
+                                                 "[EMBED: " filepath-to-transclude "]A")))))))
+
 
 
 
