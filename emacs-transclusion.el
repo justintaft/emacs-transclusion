@@ -1,3 +1,4 @@
+;; Contributor: Alpha Papa https://gist.github.com/alphapapa
 
 (setq emacs-transclusion/overlays '())
 
