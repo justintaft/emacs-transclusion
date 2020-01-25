@@ -118,7 +118,6 @@ If PROPERTIES, add them as properties to the overlay."
 
     ;Create file with contents to transclude
     (with-temp-buffer
-      (insert "A")
       (write-file filepath-to-transclude))
 
     ;Create buffer, transclude text, save buffer
