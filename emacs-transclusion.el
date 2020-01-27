@@ -1,3 +1,4 @@
+;; -*- coding: utf-8; lexical-binding: t -*-
 ;; Contributors: Alpha Papa https://gist.github.com/alphapapa
 ;;               Benson Chu github.com/pestctrl
 
@@ -42,10 +43,28 @@ If PROPERTIES, add them as properties to the overlay."
           ;;Insert text with identifiable overlay
           ;;TODO Modify text as readonly
           (emacs-transclusion/insert-overlaid
-           (emacs-transclusion/get-file-contents (match-string 1))
+           (emacs-transclusion/get-transclusion-contents (match-string 0))
            :transcluded-content t
            'face '(:foreground "red"))
           )))))
+
+
+(defun emacs-transclusion/get-transclusion-contents (embed-string)
+  (let* ((embed-syntax-list (rest (append (read embed-string) nil)))
+         (file-path (symbol-name (car (last embed-syntax-list))))
+         (options (butlast embed-syntax-list)))
+    (cond ((member :org-header-name options) (emacs-transclusion/org-header-transclusion options file-path ))
+          (t (emacs-transclusion/get-file-contents file-path)))))
+
+
+(defun emacs-transclusion/org-header-transclusion (options file-path)
+  ;This fails...why
+  (message "%s" options)
+  (message "options: %s" (plist-get options :org-header-name))
+
+  (let* ((org-header-name (plist-get options :org-header-name))
+         (lines (org-export--inclusion-absolute-lines file-path org-header-name t nil)))
+    (org-export--prepare-file-contents  file-path lines)))
 
 
 
@@ -91,6 +110,27 @@ If PROPERTIES, add them as properties to the overlay."
       (emacs-transclusion/transclude-data-for-current-buffer)
       (let ((found-overlay (first (overlays-in (point-min) (point-max)))))
         (should (string= (buffer-string) (concat "[EMBED: " filepath-to-transclude "]A")))))))
+
+
+
+(ert-deftest emacs-transclusion-test/verify-org-header-transclusion   ()
+  "Test transcluion of org header"
+
+  (let* ((filepath-to-transclude (make-temp-file "emacs-transclusion-test"))
+        (embed-string (concat "[EMBED: :org-header-name \"* Header 1\" " filepath-to-transclude "]")))
+
+    ;Create file with contents to transclude
+    (with-temp-buffer
+      (insert "* Header 1\nI_SHOULD_BE_TRANSCLUDED\n* Header 2\nI_SHOULD_NOT_BE_TRANSCLUDED")
+      (write-file filepath-to-transclude))
+    
+
+    ;Create buffer to test file inclusion 
+    (with-temp-buffer
+      (insert embed-string)
+      (emacs-transclusion/transclude-data-for-current-buffer)
+      (let ((found-overlay (first (overlays-in (point-min) (point-max)))))
+        (should (string= (buffer-string) (concat embed-string "I_SHOULD_BE_TRANSCLUDED\n")))))))
 
 
 (ert-deftest emacs-transclusion-test/verify-multiple-transclusion-text  ()
@@ -141,7 +181,7 @@ If PROPERTIES, add them as properties to the overlay."
 
 (ert-deftest emacs-transclusion-test/remove-transcluded-text-on-save ()
   (let* ((filepath-to-transclude (make-temp-file "emacs-transclusion-test"))
-         (filepath-to-write-buffer-to (make-temp-file "emacs-transclusion-test-save-buffer"))
+         (filepath-to-write-buffer-to (make-temp-file "emacs-transclusiuon-test-save-buffer"))
         (embed-string (concat "HELLO [EMBED: " filepath-to-transclude "]WORLD")))
         
 
@@ -169,6 +209,7 @@ If PROPERTIES, add them as properties to the overlay."
     (when (overlay-get cur-overlay :transcluded-content)
       (delete-region (overlay-start cur-overlay)  (overlay-end cur-overlay))
       (delete-overlay cur-overlay))))
+
 
 
 
