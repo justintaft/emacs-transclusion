@@ -1,0 +1,3 @@
+I have transculded text in me
+[EMBED: target.txt]Now we have it transcluded
+[EMBED: test.txt]
